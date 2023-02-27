@@ -1,3 +1,3 @@
-module github.com/kucinghitam/binance-backend-homework
+module github.com/kucinghitam/ethereum-watcher
 
 go 1.19
