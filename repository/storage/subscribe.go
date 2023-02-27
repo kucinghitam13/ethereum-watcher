@@ -66,7 +66,7 @@ func (this *storage) GetTransactionsByAddress(ctx context.Context, address strin
 			return true
 		})
 	}
-	// we sort the transactions on demand based on nonce
+	// we sort the transactions on demand based on nonce, this is equivalent to sequential sort without index in db
 	// TODO: improves by creating an index by nonce and update it on AddTransactionToAddress
 	// also can cause memory and cpu spike if transactions are huge
 	sort.Slice(transactions, func(i, j int) bool {

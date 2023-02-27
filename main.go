@@ -84,4 +84,5 @@ func routeAPI(handler *handlerParser.Handler) {
 	http.HandleFunc("/blocks/latest", handler.GetCurrentBlock)
 	http.HandleFunc("/subscribes", handler.Subscribe)
 	http.HandleFunc("/transactions", handler.GetTransactions)
+	http.HandleFunc("/subscribers/triger-history", handler.TriggerNewSubsHistoryParse)
 }

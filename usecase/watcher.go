@@ -10,6 +10,8 @@ type Watcher interface {
 	StartWatching()
 	StopWatching()
 
+	TriggerWatchNewSubscribers()
+
 	Parser
 }
 

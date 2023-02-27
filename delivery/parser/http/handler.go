@@ -51,6 +51,15 @@ func (this *Handler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, transactions)
 }
 
+func (this *Handler) TriggerNewSubsHistoryParse(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	this.usecase.TriggerWatchNewSubscribers()
+	writeJSON(w, http.StatusOK, nil)
+}
+
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

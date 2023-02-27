@@ -48,6 +48,12 @@ func (this *watcher) StopWatching() {
 	}
 }
 
+func (this *watcher) TriggerWatchNewSubscribers() {
+	if len(this.newSubTriggerSignal) == 0 {
+		this.newSubTriggerSignal <- true
+	}
+}
+
 func (this *watcher) watchBlockchain() <-chan int {
 	blockNumOut := make(chan int, this.config.BufferBlock)
 	go func() {
