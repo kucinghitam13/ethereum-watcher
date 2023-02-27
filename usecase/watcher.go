@@ -7,9 +7,15 @@ import (
 )
 
 type Watcher interface {
+	// start watching blockchain for new block and its transactions
+	// for subscribed addresses
 	StartWatching()
+	// graceful stop
 	StopWatching()
 
+	// manually trigger checking for new subscribers and fetch all of its transaction
+	// from blockchain instead of waiting for next scheduled cycle
+	// long running, will iterate from first known transaction block to latest
 	TriggerWatchNewSubscribers()
 
 	Parser
