@@ -20,6 +20,13 @@ func (this *watcher) Subscribe(ctx context.Context, address string) bool {
 	if err != nil {
 		log.Println("err ", err)
 	}
+	if !isAlreadySubscribed {
+		// add to new subscribers to be included when fetching all blocks
+		err = this.repoStorage.AddNewlySubscriber(ctx, address)
+		if err != nil {
+			log.Println("err ", err)
+		}
+	}
 
 	return !isAlreadySubscribed
 }

@@ -7,9 +7,14 @@
     },
     "watcher": {
         "watch_blockchain_interval_seconds": 10,
+        "watch_new_subscribers_interval_hours": 24,
         "buffer_block": 20,
         "buffer_transaction": 200,
-        "worker_pool_block": 10,
-        "worker_pool_transaction": 50
+        "buffer_block_history": 1000,
+        "buffer_transaction_history": 500,
+        "worker_pool_block": 2,
+        "worker_pool_transaction": 50,
+        "worker_pool_block_history": 10,
+        "worker_pool_transaction_history": 50
     }
 }

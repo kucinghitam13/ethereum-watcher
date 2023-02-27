@@ -14,11 +14,30 @@ func (this *watcher) StartWatching() {
 	quitChan := this.watchTransaction(
 		this.watchBlock(
 			this.watchBlockchain(),
+			this.config.BufferTransaction,
+			this.config.WorkerPoolBlock,
 		),
+		this.config.WorkerPoolTransaction,
+		this.repoStorage.IsAddressSubscribed,
 	)
+
+	var quitHistoryChan <-chan bool
+	{
+		blockHistoryChan, isSubFunc := this.watchNewSubscribers()
+		quitHistoryChan = this.watchTransaction(
+			this.watchBlock(
+				blockHistoryChan,
+				this.config.BufferTransactionHistory,
+				this.config.WorkerPoolBlockHistory,
+			),
+			this.config.WorkerPoolTransactionHistory,
+			isSubFunc,
+		)
+	}
 
 	// graceful stop
 	<-quitChan
+	<-quitHistoryChan
 	this.quitDoneSignal <- true
 }
 
@@ -30,7 +49,7 @@ func (this *watcher) StopWatching() {
 }
 
 func (this *watcher) watchBlockchain() <-chan int {
-	blockNumOut := make(chan int, this.config.BufferTransaction)
+	blockNumOut := make(chan int, this.config.BufferBlock)
 	go func() {
 		defer close(blockNumOut)
 		timerCh := time.NewTicker(this.config.WatchBlockchainInterval)
@@ -100,12 +119,12 @@ func (this *watcher) watchBlockchain() <-chan int {
 	return blockNumOut
 }
 
-func (this *watcher) watchBlock(blockIn <-chan int) <-chan modelEth.Transaction {
-	txOut := make(chan modelEth.Transaction, this.config.BufferTransaction)
+func (this *watcher) watchBlock(blockIn <-chan int, buffer, workerPool int) <-chan modelEth.Transaction {
+	txOut := make(chan modelEth.Transaction, buffer)
 	go func() {
 		defer close(txOut)
 
-		buffer := make(chan struct{}, this.config.WorkerPoolBlock)
+		buffer := make(chan struct{}, workerPool)
 		for blockNumber := range blockIn {
 			buffer <- struct{}{}
 			go func(blockNumber int) {
@@ -125,6 +144,9 @@ func (this *watcher) watchBlock(blockIn <-chan int) <-chan modelEth.Transaction 
 					if err != nil {
 						log.Print("err", err)
 						return
+					} else if block == nil {
+						log.Print("block is empty")
+						return
 					}
 					for _, tx := range block.Transactions {
 						// send transaction to be checked
@@ -140,12 +162,16 @@ func (this *watcher) watchBlock(blockIn <-chan int) <-chan modelEth.Transaction 
 	return txOut
 }
 
-func (this *watcher) watchTransaction(txIn <-chan modelEth.Transaction) <-chan bool {
+func (this *watcher) watchTransaction(
+	txIn <-chan modelEth.Transaction,
+	workerPool int,
+	isSubFunc func(context.Context, string) (bool, error),
+) <-chan bool {
 	quitTxChan := make(chan bool, 1)
 	go func() {
 		defer close(quitTxChan)
 
-		buffer := make(chan struct{}, this.config.WorkerPoolTransaction)
+		buffer := make(chan struct{}, workerPool)
 		for tx := range txIn {
 			buffer <- struct{}{}
 			go func(tx modelEth.Transaction) {
@@ -161,7 +187,7 @@ func (this *watcher) watchTransaction(txIn <-chan modelEth.Transaction) <-chan b
 				for _, addr := range []string{tx.From, tx.To} {
 					go func(addr string) {
 						defer wg.Done()
-						isSub, err := this.repoStorage.IsAddressSubscribed(ctx, addr)
+						isSub, err := isSubFunc(ctx, addr)
 						if err != nil {
 							log.Print("err", err)
 							return
@@ -188,4 +214,80 @@ func (this *watcher) watchTransaction(txIn <-chan modelEth.Transaction) <-chan b
 
 func (this *watcher) notifTransactionToAddr(addr string, tx modelEth.Transaction) {
 	log.Printf("new transaction for subscribed address of %s (from %s to %s value %d)\n", addr, tx.From, tx.To, tx.Value)
+}
+
+const blockNumberEarliestTransaction = 46147
+
+func (this *watcher) watchNewSubscribers() (
+	<-chan int,
+	func(context.Context, string) (bool, error),
+) {
+	blockNumOut := make(chan int, this.config.BufferBlockHistory)
+	newSubs := make(map[string]struct{})
+	go func() {
+		defer close(blockNumOut)
+		fmt.Printf("watching new subscribers at interval %s\n", this.config.WatchNewSubscribersInterval.String())
+
+		timerCh := time.NewTicker(this.config.WatchNewSubscribersInterval)
+		var addresses []string
+		processFunc := func() {
+			ctx := context.Background()
+			latestBlock, err := this.repoStorage.GetLatestBlockNumber(ctx)
+			if err != nil {
+				log.Print("err", err)
+				return
+			}
+			if latestBlock == 0 {
+				latestBlock, err = this.repoEth.GetLatestBlockNumber(ctx)
+				if err != nil {
+					log.Print("err", err)
+					return
+				}
+			}
+
+			//delete previous new subs if exists
+			if len(addresses) > 0 {
+				err = this.repoStorage.DeleteNewSubscribers(ctx, addresses)
+				if err != nil {
+					log.Print("err", err)
+					return
+				}
+			}
+
+			addresses, err = this.repoStorage.FetchhAllNewSubscribers(ctx)
+			if err != nil {
+				log.Print("err", err)
+				return
+			}
+
+			newSubs = make(map[string]struct{})
+			for _, addr := range addresses {
+				newSubs[addr] = struct{}{}
+			}
+
+			log.Printf("process new subscribers history parsing started, blocks: %d, new subscribers: %d\n", latestBlock-1, len(newSubs))
+
+			for blockNum := blockNumberEarliestTransaction; blockNum < latestBlock; blockNum++ {
+				blockNumOut <- blockNum
+			}
+		}
+		var quit bool
+		for !quit {
+			select {
+			case <-this.quitSignal:
+				quit = true
+				break
+
+			case <-this.newSubTriggerSignal:
+				processFunc()
+			case <-timerCh.C:
+				processFunc()
+			}
+		}
+		log.Println("done quit watching new subscribers")
+	}()
+	return blockNumOut, func(ctx context.Context, address string) (bool, error) {
+		_, ok := newSubs[address]
+		return ok, nil
+	}
 }

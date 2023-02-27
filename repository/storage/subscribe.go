@@ -74,3 +74,24 @@ func (this *storage) GetTransactionsByAddress(ctx context.Context, address strin
 	})
 	return
 }
+
+func (this *storage) AddNewlySubscriber(ctx context.Context, address string) (err error) {
+	this.subscribersNew.LoadOrStore(address, struct{}{})
+	return
+}
+
+func (this *storage) FetchhAllNewSubscribers(ctx context.Context) (addresses []string, err error) {
+	this.subscribersNew.Range(func(k, v any) bool {
+		addr := k.(string)
+		addresses = append(addresses, addr)
+		return true
+	})
+	return
+}
+
+func (this *storage) DeleteNewSubscribers(ctx context.Context, addresses []string) (err error) {
+	for _, addr := range addresses {
+		this.subscribersNew.Delete(addr)
+	}
+	return
+}

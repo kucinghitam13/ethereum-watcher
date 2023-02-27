@@ -15,13 +15,18 @@ type (
 		} `json:"ethereum"`
 
 		Watcher struct {
-			WatchBlockchainIntervalSeconds int `json:"watch_blockchain_interval_seconds"`
+			WatchBlockchainIntervalSeconds   int `json:"watch_blockchain_interval_seconds"`
+			WatchNewSubscribersIntervalHours int `json:"watch_new_subscribers_interval_hours"`
 
-			BufferBlock       int `json:"buffer_block"`
-			BufferTransaction int `json:"buffer_transaction"`
+			BufferBlock              int `json:"buffer_block"`
+			BufferBlockHistory       int `json:"buffer_block_history"`
+			BufferTransaction        int `json:"buffer_transaction"`
+			BufferTransactionHistory int `json:"buffer_transaction_history"`
 
-			WorkerPoolBlock       int `json:"worker_pool_block"`
-			WorkerPoolTransaction int `json:"worker_pool_transaction"`
+			WorkerPoolBlock              int `json:"worker_pool_block"`
+			WorkerPoolBlockHistory       int `json:"worker_pool_block_history"`
+			WorkerPoolTransaction        int `json:"worker_pool_transaction"`
+			WorkerPoolTransactionHistory int `json:"worker_pool_transaction_history"`
 		} `json:"watcher"`
 	}
 )

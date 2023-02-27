@@ -16,6 +16,8 @@ type (
 
 		subscribers  sync.Map
 		transactions sync.Map
+
+		subscribersNew sync.Map
 	}
 )
 

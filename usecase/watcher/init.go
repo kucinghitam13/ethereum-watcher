@@ -9,21 +9,27 @@ import (
 
 type (
 	Config struct {
-		WatchBlockchainInterval time.Duration
+		WatchBlockchainInterval     time.Duration
+		WatchNewSubscribersInterval time.Duration
 
-		BufferBlock       int
-		BufferTransaction int
+		BufferBlock              int
+		BufferBlockHistory       int
+		BufferTransaction        int
+		BufferTransactionHistory int
 
-		WorkerPoolBlock       int
-		WorkerPoolTransaction int
+		WorkerPoolBlock              int
+		WorkerPoolBlockHistory       int
+		WorkerPoolTransaction        int
+		WorkerPoolTransactionHistory int
 	}
 	watcher struct {
 		config      *Config
 		repoEth     repository.Ethereum
 		repoStorage repository.Storage
 
-		quitSignal     chan bool
-		quitDoneSignal chan bool
+		quitSignal          chan bool
+		quitDoneSignal      chan bool
+		newSubTriggerSignal chan bool
 	}
 )
 
@@ -33,10 +39,11 @@ func New(
 	repoStorage repository.Storage,
 ) usecase.Watcher {
 	return &watcher{
-		config:         config,
-		repoEth:        repoEth,
-		repoStorage:    repoStorage,
-		quitSignal:     make(chan bool, 1),
-		quitDoneSignal: make(chan bool, 1),
+		config:              config,
+		repoEth:             repoEth,
+		repoStorage:         repoStorage,
+		quitSignal:          make(chan bool, 1),
+		quitDoneSignal:      make(chan bool, 1),
+		newSubTriggerSignal: make(chan bool),
 	}
 }

@@ -32,6 +32,11 @@ type (
 		// subscribe given address
 		SubscribeAddress(ctx context.Context, address string) (isAlreadySubscribed bool, err error)
 
+		// newly subscriber is list of subscribers that all transactions haven't been fetched and stored
+		AddNewlySubscriber(ctx context.Context, address string) (err error)
+		FetchhAllNewSubscribers(ctx context.Context) (addresses []string, err error)
+		DeleteNewSubscribers(ctx context.Context, addresses []string) (err error)
+
 		AddTransactionToAddress(ctx context.Context, address string, transaction modelEth.Transaction) (err error)
 		GetTransactionsByAddress(ctx context.Context, address string) (transactions []modelEth.Transaction, err error)
 	}

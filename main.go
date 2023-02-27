@@ -25,11 +25,18 @@ func main() {
 	repoStorage := repoSt.New(&repoSt.Config{})
 
 	watcher := usecaseW.New(&usecaseW.Config{
-		WatchBlockchainInterval: time.Second * time.Duration(config.Watcher.WatchBlockchainIntervalSeconds),
-		BufferBlock:             config.Watcher.BufferBlock,
-		BufferTransaction:       config.Watcher.BufferTransaction,
-		WorkerPoolBlock:         config.Watcher.WorkerPoolBlock,
-		WorkerPoolTransaction:   config.Watcher.WorkerPoolTransaction,
+		WatchBlockchainInterval:     time.Second * time.Duration(config.Watcher.WatchBlockchainIntervalSeconds),
+		WatchNewSubscribersInterval: time.Hour * time.Duration(config.Watcher.WatchNewSubscribersIntervalHours),
+
+		BufferBlock:              config.Watcher.BufferBlock,
+		BufferTransaction:        config.Watcher.BufferTransaction,
+		BufferBlockHistory:       config.Watcher.BufferBlockHistory,
+		BufferTransactionHistory: config.Watcher.BufferTransactionHistory,
+
+		WorkerPoolBlock:              config.Watcher.WorkerPoolBlock,
+		WorkerPoolTransaction:        config.Watcher.WorkerPoolTransaction,
+		WorkerPoolBlockHistory:       config.Watcher.WorkerPoolBlockHistory,
+		WorkerPoolTransactionHistory: config.Watcher.WorkerPoolTransactionHistory,
 	}, repoEthereum, repoStorage)
 	go func() {
 		watcher.StartWatching()
