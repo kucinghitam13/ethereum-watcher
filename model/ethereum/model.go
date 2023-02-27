@@ -10,15 +10,15 @@ type (
 		Transactions    []Transaction
 	}
 	Transaction struct {
-		BlockHash        string
-		BlockNumber      int
-		TransactionIndex int
-		Type             int
-		From             string
-		To               string
-		Value            int
-		Nonce            int
-		Input            string
-		Hash             string
+		BlockHash        string `json:"block_hash"`
+		BlockNumber      int    `json:"block_number"`
+		TransactionIndex int    `json:"transaction_index"`
+		Type             int    `json:"type"`
+		From             string `json:"from"`
+		To               string `json:"to"`
+		Value            int    `json:"value"`
+		Nonce            int    `json:"nonce"`
+		Input            string `json:"input"`
+		Hash             string `json:"hash"`
 	}
 )

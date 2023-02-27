@@ -30,8 +30,9 @@ type (
 		// check whether given address currently subscribes
 		IsAddressSubscribed(ctx context.Context, address string) (subscribed bool, err error)
 		// subscribe given address
-		SubscribeAddress(ctx context.Context, address string) (err error)
+		SubscribeAddress(ctx context.Context, address string) (isAlreadySubscribed bool, err error)
 
 		AddTransactionToAddress(ctx context.Context, address string, transaction modelEth.Transaction) (err error)
+		GetTransactionsByAddress(ctx context.Context, address string) (transactions []modelEth.Transaction, err error)
 	}
 )

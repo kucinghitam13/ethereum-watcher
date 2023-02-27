@@ -9,7 +9,7 @@ import (
 
 type (
 	Config struct {
-		WatchBlockInterval time.Duration
+		WatchBlockchainInterval time.Duration
 
 		BufferBlock       int
 		BufferTransaction int

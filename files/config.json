@@ -1,0 +1,15 @@
+{
+    "http": {
+        "port": 8080
+    },
+    "ethereum": {
+        "host": "https://cloudflare-eth.com"
+    },
+    "watcher": {
+        "watch_blockchain_interval_seconds": 10,
+        "buffer_block": 20,
+        "buffer_transaction": 200,
+        "worker_pool_block": 10,
+        "worker_pool_transaction": 50
+    }
+}

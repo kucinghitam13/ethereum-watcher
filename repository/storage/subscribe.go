@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"sort"
 	"sync"
 
 	modelEth "github.com/kucinghitam/ethereum-watcher/model/ethereum"
@@ -21,8 +22,9 @@ func (this *storage) IsAddressSubscribed(ctx context.Context, address string) (s
 	return
 }
 
-func (this *storage) SubscribeAddress(ctx context.Context, address string) (err error) {
-	this.subscribers.LoadOrStore(address, &subscriber{})
+func (this *storage) SubscribeAddress(ctx context.Context, address string) (isAlreadySubscribed bool, err error) {
+	_, isAlreadySubscribed = this.subscribers.LoadOrStore(address, &subscriber{})
+
 	return
 }
 
@@ -48,5 +50,27 @@ func (this *storage) AddTransactionToAddress(ctx context.Context, address string
 
 		sub.transactionsMap.Store(transaction.Hash, d)
 	}
+	return
+}
+
+func (this *storage) GetTransactionsByAddress(ctx context.Context, address string) (transactions []modelEth.Transaction, err error) {
+	if subAny, ok := this.subscribers.Load(address); ok {
+		sub := subAny.(*subscriber)
+		sub.transactionsMap.Range(func(k, v any) bool {
+			d := v.(*[]byte)
+			var transaction modelEth.Transaction
+			err = gob.NewDecoder(bytes.NewReader(*d)).Decode(&transaction)
+			if err == nil {
+				transactions = append(transactions, transaction)
+			}
+			return true
+		})
+	}
+	// we sort the transactions on demand based on nonce
+	// TODO: improves by creating an index by nonce and update it on AddTransactionToAddress
+	// also can cause memory and cpu spike if transactions are huge
+	sort.Slice(transactions, func(i, j int) bool {
+		return transactions[i].Nonce < transactions[j].Nonce
+	})
 	return
 }
