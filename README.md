@@ -17,7 +17,7 @@ go build -o bin/ethereum-watcher
 ## Docker
 1.
 ```
-docker build --tag ethereum-watcher:latest
+docker build --tag ethereum-watcher:latest .
 ```
 
 2.
