@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -59,7 +58,7 @@ func (this *watcher) watchBlockchain() <-chan int {
 	go func() {
 		defer close(blockNumOut)
 		timerCh := time.NewTicker(this.config.WatchBlockchainInterval)
-		fmt.Printf("watching blockchain at interval %s\n", this.config.WatchBlockchainInterval.String())
+		log.Printf("watching blockchain at interval %s\n", this.config.WatchBlockchainInterval.String())
 		var quit bool
 		for !quit {
 			select {
@@ -232,7 +231,7 @@ func (this *watcher) watchNewSubscribers() (
 	newSubs := make(map[string]struct{})
 	go func() {
 		defer close(blockNumOut)
-		fmt.Printf("watching new subscribers at interval %s\n", this.config.WatchNewSubscribersInterval.String())
+		log.Printf("watching new subscribers at interval %s\n", this.config.WatchNewSubscribersInterval.String())
 
 		timerCh := time.NewTicker(this.config.WatchNewSubscribersInterval)
 		var addresses []string
